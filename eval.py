@@ -44,8 +44,6 @@ parser.add_argument('--confidence_threshold', default=0.01, type=float,
                     help='Detection confidence threshold')
 parser.add_argument('--top_k', default=5, type=int,
                     help='Further restrict the number of predictions to parse')
-parser.add_argument('--cuda', default=True, type=str2bool,
-                    help='Use cuda to train model')
 parser.add_argument('--voc_root', default=VOC_ROOT,
                     help='Location of VOC root directory')
 parser.add_argument('--cleanup', default=True, type=str2bool,
@@ -56,15 +54,7 @@ args = parser.parse_args()
 if not os.path.exists(args.save_folder):
     os.mkdir(args.save_folder)
 
-if torch.cuda.is_available():
-    if args.cuda:
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    if not args.cuda:
-        print("WARNING: It looks like you have a CUDA device, but aren't using \
-              CUDA.  Run with --cuda for optimal eval speed.")
-        torch.set_default_tensor_type('torch.FloatTensor')
-else:
-    torch.set_default_tensor_type('torch.FloatTensor')
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 annopath = os.path.join(args.voc_root, 'VOC2007', 'Annotations', '%s.xml')
 imgpath = os.path.join(args.voc_root, 'VOC2007', 'JPEGImages', '%s.jpg')
@@ -361,7 +351,7 @@ cachedir: Directory for caching the annotations
     return rec, prec, ap
 
 
-def test_net(save_folder, net, cuda, dataset, transform, top_k,
+def test_net(save_folder, net, dataset, transform, top_k,
              im_size=300, thresh=0.05):
     num_images = len(dataset)
     # all detections are collected into:
@@ -378,9 +368,7 @@ def test_net(save_folder, net, cuda, dataset, transform, top_k,
     for i in range(num_images):
         im, gt, h, w = dataset.pull_item(i)
 
-        x = Variable(im.unsqueeze(0))
-        if args.cuda:
-            x = x.cuda()
+        x = im.unsqueeze(0).cuda()
         _t['im_detect'].tic()
         detections = net(x).data
         detect_time = _t['im_detect'].toc(average=False)
@@ -429,10 +417,9 @@ if __name__ == '__main__':
     dataset = VOCDetection(args.voc_root, [('2007', set_type)],
                            BaseTransform(300, dataset_mean),
                            VOCAnnotationTransform())
-    if args.cuda:
-        net = net.cuda()
-        cudnn.benchmark = True
+    net = net.cuda()
+    cudnn.benchmark = True
     # evaluation
-    test_net(args.save_folder, net, args.cuda, dataset,
+    test_net(args.save_folder, net, dataset,
              BaseTransform(net.size, dataset_mean), args.top_k, 300,
              thresh=args.confidence_threshold)
