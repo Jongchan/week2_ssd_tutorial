@@ -1,6 +1,6 @@
 from data import *
 from utils.augmentations import SSDAugmentation
-from layers.modules import MultiBoxLoss
+from utils.layers.modules import MultiBoxLoss
 from ssd import build_ssd
 import os
 import sys
@@ -23,8 +23,8 @@ def str2bool(v):
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Training With Pytorch')
 train_set = parser.add_mutually_exclusive_group()
-parser.add_argument('--dataset', default='VOC', choices=['VOC', 'COCO'],
-                    type=str, help='VOC or COCO')
+parser.add_argument('--dataset', default='VOC', choices=['VOC'],
+                    type=str, help='VOC only')
 parser.add_argument('--dataset_root', default=VOC_ROOT,
                     help='Dataset root directory path')
 parser.add_argument('--basenet', default='vgg16_reducedfc.pth',
@@ -57,20 +57,7 @@ if not os.path.exists(args.save_folder):
 
 
 def train():
-    if args.dataset == 'COCO':
-        if args.dataset_root == VOC_ROOT:
-            if not os.path.exists(COCO_ROOT):
-                parser.error('Must specify dataset_root if specifying dataset')
-            print("WARNING: Using default COCO dataset_root because " +
-                  "--dataset_root was not specified.")
-            args.dataset_root = COCO_ROOT
-        cfg = coco
-        dataset = COCODetection(root=args.dataset_root,
-                                transform=SSDAugmentation(cfg['min_dim'],
-                                                          MEANS))
-    elif args.dataset == 'VOC':
-        if args.dataset_root == COCO_ROOT:
-            parser.error('Must specify dataset if specifying dataset_root')
+    if args.dataset == 'VOC':
         cfg = voc
         dataset = VOCDetection(root=args.dataset_root,
                                transform=SSDAugmentation(cfg['min_dim'],
@@ -101,8 +88,7 @@ def train():
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
-    criterion = MultiBoxLoss(cfg['num_classes'], 0.5, True, 0, True, 3, 0.5,
-                             False, args.cuda)
+    criterion = MultiBoxLoss(cfg['num_classes'], 0.5, True, 0, True, 3, 0.5, False)
 
     net.train()
     # loss counters
@@ -131,7 +117,11 @@ def train():
             adjust_learning_rate(optimizer, args.gamma, step_index)
 
         # load train data
-        images, targets = next(batch_iterator)
+        try:
+            images, targets = next(batch_iterator)
+        except StopIteration:
+            batch_iterator = iter(data_loader)
+            images, targets = next(batch_iterator)
 
         images = images.cuda()
         targets = [ann.cuda() for ann in targets]
@@ -145,12 +135,12 @@ def train():
         loss.backward()
         optimizer.step()
         t1 = time.time()
-        loc_loss += loss_l.data[0]
-        conf_loss += loss_c.data[0]
+        loc_loss += loss_l.item()
+        conf_loss += loss_c.item()
 
         if iteration % 10 == 0:
             print('timer: %.4f sec.' % (t1 - t0))
-            print('iter ' + repr(iteration) + ' || Loss: %.4f ||' % (loss.data[0]), end=' ')
+            print('iter ' + repr(iteration) + ' || Loss: %.4f ||' % (loss.item()), end=' ')
 
         if iteration != 0 and iteration % 5000 == 0:
             print('Saving state, iter:', iteration)

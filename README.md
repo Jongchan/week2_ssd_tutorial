@@ -11,12 +11,12 @@ Before we begin, the host server should meet the requirements below:
 
 ```
 # VOC2007
-mkdir -p DATA/VOC2007
-sh data/scripts/VOC2007.sh DATA/VOC2007/
+mkdir -p DATA/
+sh data/scripts/VOC2007.sh DATA/
 
 # VOC2012
 mkdir -p DATA/VOC2012
-sh data/scripts/VOC2012.sh DATA/VOC2012/
+sh data/scripts/VOC2012.sh DATA/
 
 # Pre-trained weights for VGG16
 mkdir -p DATA/weights

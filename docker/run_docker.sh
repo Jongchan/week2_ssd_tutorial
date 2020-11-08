@@ -1,5 +1,5 @@
 USER_HOME=/home/$USER
-docker run \
+nvidia-docker run \
     -d \
     --ipc=host \
     -it \
