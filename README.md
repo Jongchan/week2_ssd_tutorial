@@ -15,7 +15,7 @@ mkdir -p DATA/
 sh data/scripts/VOC2007.sh DATA/
 
 # VOC2012
-mkdir -p DATA/VOC2012
+mkdir -p DATA/
 sh data/scripts/VOC2012.sh DATA/
 
 # Pre-trained weights for VGG16
