@@ -96,10 +96,13 @@ Results:
 
 ## Task
 
-### Task0: experiment logging
+### Task0: experiment logging and understand the code
 * Use wandb for logging
 * This includes training / validation loss, and validation performance.
 * The base code has separate training/evaluation code, combine them into single code and iteratively do train/eval.
+* Understand the items below and present in the final report:
+  * How loss is implemented? (how are labels/bboxes used for loss computation? And how are they compared with the model outputs?)
+  * How is the model output converted into bounding boxes?
 
 ### Task1: the effect of pre-trained weights
 * Try with or without pre-trained weights.
@@ -111,3 +114,6 @@ Results:
 * Resolution: current default resolution is 300 (specified in `data/config.py` as `min_dim`), what is the ultimate best resolution?
 * Online hard sample mining (OHEM) or Focal Loss: there are easy / hard samples in the training. Online Hard Sample Mining (OHEM) is a popular technique to improve performance, and Focal Loss is a simple version of it. Try it, and see if there is some meaningful improvements.
 * Backbone: VGG is a too simple backbone. How about using other backbones such as ResNet? (try with different sized backbones)
+
+### Task3: Analyze how the model
+* Any analysis on the model performance, apart from simple mAP. This may include some qualitative analysis. For example, calculate the model performance for large bboxes and small bboxes; why some classes have lower performance than others; etc.
