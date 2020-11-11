@@ -103,6 +103,7 @@ Results:
 * Understand the items below and present in the final report:
   * How loss is implemented? (how are labels/bboxes used for loss computation? And how are they compared with the model outputs?)
   * How is the model output converted into bounding boxes?
+  * Non maximal suppression (NMS)
 
 ### Task1: the effect of pre-trained weights
 * Try with or without pre-trained weights.
